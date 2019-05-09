@@ -22,8 +22,34 @@ class App extends Component {
     // GET USER INFO
   }
 
+  resetUser = () => {
+    this.setState({user: null});
+  }
+
   getUser = () => {
     // TODO: SEE IF THERE'S A TOKEN
+    console.log(localStorage.getItem('serverToken'));
+    let token = localStorage.getItem('serverToken');
+    if (token) {
+      axios.post(`${SERVER_URL}/auth/current/user`, {
+        headers: {
+          'Authorization' : `Bearer ${token}`
+        }
+      })
+      .then(response=> {
+        console.log(response);
+        this.setState({user: response.data.user})
+      })
+      .catch(err=> {
+        this.resetUser();
+        console.log('error getting user by token:');
+        console.log(err);
+      })
+    } else {
+      this.resetUser();
+      console.log('no user token found');
+    }
+
     // IF THERE IS, TRY TO GET USER INFO
   }
 
@@ -32,13 +58,13 @@ class App extends Component {
       <div className="App">
         <Router>
           <div className="container">
-            <Nav user={this.state.user} />
+            <Nav user={this.state.user} resetUser={this.resetUser} />
             <Route exact path="/" component={Home} />
             <Route path="/login" component={
-              () => (<Login user={this.state.user} />)
+              () => (<Login user={this.state.user} getUser={this.getUser} />)
             } />
             <Route path="/signup" component={
-              () => (<Signup user={this.state.user} />)
+              () => (<Signup user={this.state.user} getUser={this.getUser} />)
             } />
             <Route path="/profile" component={
               () => (<Profile user={this.state.user} />)
